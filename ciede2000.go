@@ -47,11 +47,15 @@ func Distance(c1, c2 color.Color) float64 {
 
 	if cPrime1*cPrime2 == 0 {
 		deltaH = 0
+	} else if math.Abs(hPrime2-hPrime1) <= 180 {
+		deltaH = hPrime2 - hPrime1
+	} else if hPrime2 - hPrime1 > 180 {
+		deltaH = (hPrime2 - hPrime1) - 360
 	} else {
-		if math.Abs(hPrime2-hPrime1) <= 180 {
-			deltaH = hPrime2-hPrime1
-		}
+		deltaH = (hPrime2 - hPrime1) + 360
 	}
+
+	deltaH = 2 * math.Sqrt(cPrime1*cPrime2) * math.Sin(deltaH/2)
 
 	return 0.0
 }
