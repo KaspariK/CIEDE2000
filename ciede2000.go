@@ -3,6 +3,7 @@ package ciede2000
 import (
 	"image/color"
 	"math"
+	"math/cmplx"
 )
 
 func Distance(c1, c2 color.Color) float64 {
@@ -57,8 +58,34 @@ func Distance(c1, c2 color.Color) float64 {
 
 	deltaH = 2 * math.Sqrt(cPrime1*cPrime2) * math.Sin(deltaH/2)
 
-	lBarPrime = (l1.l + l2.l) / 2
-	cBarPrime = (cPrime1 + cPrime2) / 2
+	lBarPrime := (l1.l + l2.l) / 2
+	cBarPrime := (cPrime1 + cPrime2) / 2
+
+	var hBarPrime float64
+
+	if cPrime1*cPrime2 == 0 {
+		hBarPrime = hPrime1 + hPrime2
+	} else if math.Abs(hPrime1-hPrime2) <= 180 {
+		hBarPrime = (hPrime1 + hPrime2) / 2
+	} else if math.Abs(hPrime1-hPrime2) > 180 && math.Abs(hPrime1-hPrime2) < 360 {
+		hBarPrime = ((hPrime1 + hPrime2) + 360) / 2
+	} else {
+		hBarPrime = ((hPrime1 + hPrime2) - 360) / 2
+	}
+
+	t := 1 - (0.17 * math.Cos(hBarPrime-30)) + (0.24 * math.Cos(2*hBarPrime)) + (0.32 * math.Cos(3*hBarPrime+6)) - (0.20 * math.Cos(4*hBarPrime-63))
+
+	deltaTheta := 30 * math.Exp(-(((hBarPrime - 275) / 25) * ((hBarPrime - 275) / 25)))
+
+	rC := 2 * math.Sqrt(math.Pow(cBarPrime, 7)/(math.Pow(cBarPrime, 7)*math.Pow(25, 7)))
+
+	sL := 1 + (0.015 * ((lBarPrime - 50) * (lBarPrime - 50))) / (math.Sqrt(20 + ((lBarPrime - 50) * (lBarPrime - 50))))
+
+	sC := 1 + (0.045*cBarPrime)
+
+	sH := 1 + (0.015*cBarPrime*t)
+
+	rT := math.Asin(2 * deltaTheta) * rC
 
 	return 0.0
 }
