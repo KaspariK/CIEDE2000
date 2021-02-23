@@ -3,9 +3,30 @@ package ciede2000
 import (
 	"image/color"
 	"math"
-	"math/cmplx"
 )
 
+// Implementation Notes:
+//
+// 1. In the formulas above, angles are expressed in degrees, not radians.
+//
+// 2. In computing h′1 and h′2, be careful with the inverse tangent since a′1
+// and/or a′2 could be zero. Instead, use special math functions to do this. In
+// the Standard C library and most other math libraries, this function is called
+// atan2 and is used calling atan2(b, a). In Microsoft Excel, it is called ATAN2
+// and its use is ATAN2(a, b). Note the argument reversal! These special
+// functions will compute the proper inverse tangents without needing to worry
+// about "divide by zero" conditions. Additionally, atan2 will also handle the
+// quadrants for you.
+//
+// 3. Math libraries generally return inverse tangents in radians, not degrees.
+// In Excel, use the DEGREES function to convert radians to degrees.
+//
+// 4. Math libraries generally require the input to the sine and cosine functions
+// to be in radians, not degrees. In Excel, use the RADIANS function to convert
+// degrees to radians.
+
+// kL=kC=kH=1 under reference conditions
+// Illumination: D65 source
 func Distance(c1, c2 color.Color) float64 {
 	l1 := toLAB(c1)
 	l2 := toLAB(c2)
@@ -29,7 +50,7 @@ func Distance(c1, c2 color.Color) float64 {
 	if l1.b == 0 && aPrime1 == 0 {
 		hPrime1 = 0
 	} else {
-		hPrime1 = math.Atan2(l1.b, aPrime1)
+		hPrime1 = math.Atan2(l1.b, aPrime1) // are these in the right order?
 	}
 
 	var hPrime2 float64
@@ -41,7 +62,6 @@ func Distance(c1, c2 color.Color) float64 {
 	}
 
 	deltaL := l2.l - l1.l
-
 	deltaC := cPrime2 - cPrime1
 
 	var deltaH float64
@@ -79,15 +99,24 @@ func Distance(c1, c2 color.Color) float64 {
 
 	rC := 2 * math.Sqrt(math.Pow(cBarPrime, 7)/(math.Pow(cBarPrime, 7)*math.Pow(25, 7)))
 
+	// Positional corrections to the lack of uniformity
 	sL := 1 + (0.015 * ((lBarPrime - 50) * (lBarPrime - 50))) / (math.Sqrt(20 + ((lBarPrime - 50) * (lBarPrime - 50))))
-
 	sC := 1 + (0.045*cBarPrime)
-
 	sH := 1 + (0.015*cBarPrime*t)
-
 	rT := math.Asin(2 * deltaTheta) * rC
 
-	return 0.0
+	// Corrections accounting for the influence of experimental viewing conditions
+	kL := 1.0
+	kC := 1.0
+	kH := 1.0
+
+	deltaL /= kL * sL
+	deltaC /= kC * sC
+	deltaH /= kH * sH
+
+	deltaE := math.Sqrt((deltaL * deltaL) + (deltaC * deltaC) + (deltaH * deltaH) + (rT * deltaC * deltaH))
+
+	return deltaE
 }
 
 type xyz struct {
