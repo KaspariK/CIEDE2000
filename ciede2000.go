@@ -15,7 +15,7 @@ func Distance(c1, c2 color.Color) float64 {
 
 	cBar := (cStar1 + cStar2) / 2
 
-	g := 0.5 * (1 - math.Sqrt(math.Pow(cBar, 7) / (math.Pow(cBar, 7) + math.Pow(25, 7))))
+	g := 0.5 * (1 - math.Sqrt(math.Pow(cBar, 7)/(math.Pow(cBar, 7)+math.Pow(25, 7))))
 
 	aPrime1 := (1 + g) * l1.a
 	aPrime2 := (1 + g) * l2.a
@@ -49,13 +49,16 @@ func Distance(c1, c2 color.Color) float64 {
 		deltaH = 0
 	} else if math.Abs(hPrime2-hPrime1) <= 180 {
 		deltaH = hPrime2 - hPrime1
-	} else if hPrime2 - hPrime1 > 180 {
+	} else if hPrime2-hPrime1 > 180 {
 		deltaH = (hPrime2 - hPrime1) - 360
 	} else {
 		deltaH = (hPrime2 - hPrime1) + 360
 	}
 
 	deltaH = 2 * math.Sqrt(cPrime1*cPrime2) * math.Sin(deltaH/2)
+
+	lBarPrime = (l1.l + l2.l) / 2
+	cBarPrime = (cPrime1 + cPrime2) / 2
 
 	return 0.0
 }
@@ -112,7 +115,7 @@ type lab struct {
 	b float64
 }
 
-func toLAB (c color.Color) lab {
+func toLAB(c color.Color) lab {
 	xyz := toXYZ(c)
 
 	// using D65 illuminant
@@ -124,19 +127,19 @@ func toLAB (c color.Color) lab {
 	if x > 0.008856 {
 		x = math.Pow(x, 1/3)
 	} else {
-		x = (x * 7.787) + (16/116)
+		x = (x * 7.787) + (16 / 116)
 	}
 
 	if y > 0.008856 {
 		y = math.Pow(y, 1/3)
 	} else {
-		y = (y * 7.787) + (16/116)
+		y = (y * 7.787) + (16 / 116)
 	}
 
 	if z > 0.008856 {
 		z = math.Pow(z, 1/3)
 	} else {
-		z = (z * 7.787) + (16/116)
+		z = (z * 7.787) + (16 / 116)
 	}
 
 	return lab{
